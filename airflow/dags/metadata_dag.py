@@ -33,7 +33,7 @@ clientLogs = boto3.client('logs',
                         )
 
 dag = DAG(
-    dag_id="metadata_scraper_dag_v1",
+    dag_id="metadata_scrape_v1",
     schedule="0 0 * * *",   #run daily - at midnight
     start_date=days_ago(0),
     catchup=False,

@@ -11,8 +11,6 @@ RUN apt-get update \
 
 USER airflow
 
-EXPOSE 8080
-
 COPY requirements.txt /requirements.txt
 
 RUN pip install --user --upgrade pip
