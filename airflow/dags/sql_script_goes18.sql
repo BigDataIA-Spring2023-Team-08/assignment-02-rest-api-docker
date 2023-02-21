@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS GOES_METADATA(id number, product text, year text, day text, hour text);

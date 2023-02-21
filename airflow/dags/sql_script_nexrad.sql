@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS NEXRAD_METADATA(id number, year text, month text, day text, ground_station text);
