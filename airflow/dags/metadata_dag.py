@@ -15,7 +15,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 #load env variables
-dotenv_path = Path('./secrets/.env')
+dotenv_path = Path('./dags/.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 #authenticate S3 client with your user credentials that are stored in your .env config file
