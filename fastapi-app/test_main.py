@@ -5,10 +5,9 @@ from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 from main import app
 
-
 client = TestClient(app)
 #load env variables
-#load_dotenv()
+load_dotenv()
 
 #API_URL = "http://localhost:8080"
 
