@@ -1,11 +1,15 @@
 import requests
 import json
 import os
+from dotenv import load_dotenv
+
+#load env variables
+load_dotenv()
 
 #API_URL = "http://127.0.0.1:8080"
 #API_URL = "http://localhost:8080"
 #API_URL = "http://localhost:8080/docs"
-API_URL = "http://127.0.0.1:8080/docs"
+API_URL = "http://127.0.0.1:8080"
 
 #Router: database, Endpoint 1
 def test_get_product_goes():
