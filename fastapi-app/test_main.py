@@ -1,12 +1,8 @@
 import requests
 import json
 import os
-from fastapi.testclient import TestClient
-from main import app
 
 API_URL = "http://127.0.0.1:8080"
-
-client = TestClient(app)
 
 #Router: database, Endpoint 1
 def test_get_product_goes():
