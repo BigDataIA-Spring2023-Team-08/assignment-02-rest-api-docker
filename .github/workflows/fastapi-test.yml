@@ -20,7 +20,7 @@ jobs:
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
-          source: s3://sevis-bucket-01/database-files/sql_scraped_database.db
+          source: s3://sevir-bucket-01/database-files/sql_scraped_database.db
           destination: ./fastapi-app/sql_scraped_database.db
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_KEY }}
