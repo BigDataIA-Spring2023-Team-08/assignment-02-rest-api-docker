@@ -92,6 +92,9 @@ The data exploration tool for the Geospatial startup uses the Python library [St
       - Download file by entering field values
       - Get public URL by entering filename
   - NEXRAD Maps Location page
+  
+### Sign up and Login Pages
+![Sign up Page](signup_user_created)
 
 ### Flow for Download file by entering field values
 1. Enter text box fields for each value (for example, in GOES18 it is year, day & hour)
