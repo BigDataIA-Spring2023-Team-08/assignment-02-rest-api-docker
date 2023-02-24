@@ -1,0 +1,43 @@
+version: '1.3'
+# networks:
+#   my_network:
+#     external: true
+
+services:
+  fastapi:
+    platform: linux/amd64
+    image: 'mashruwalav/daas_api:latest'
+    build: .
+    #container_name: daas_api_cont
+    ports:
+      - 8000:8000
+    environment:
+      AWS_ACCESS_KEY: 'XXXXXX'
+      AWS_SECRET_KEY: 'XXXXXX'
+      AWS_LOG_ACCESS_KEY: 'XXXXXX'
+      AWS_LOG_SECRET_KEY: 'XXXXXX'
+      USER_BUCKET_NAME: 'XXXXXX'
+      GOES18_BUCKET_NAME: 'noaa-goes18'
+      NEXRAD_BUCKET_NAME: 'noaa-nexrad-level2'
+      CI_FLAG: 'False'
+    # networks:
+    #   - host
+    restart: always
+  streamlit:
+    platform: linux/amd64
+    image: 'mashruwalav/daas_streamlit:latest'
+    build: .
+    #container_name: daas_streamlit_cont
+    ports:
+      - 8078:8078
+    environment:
+      AWS_ACCESS_KEY: 'XXXXXX'
+      AWS_SECRET_KEY: 'XXXXXX'
+      AWS_LOG_ACCESS_KEY: 'XXXXXX'
+      AWS_LOG_SECRET_KEY: 'XXXXXX'
+      USER_BUCKET_NAME: 'XXXXXX'
+      GOES18_BUCKET_NAME: 'noaa-goes18'
+      NEXRAD_BUCKET_NAME: 'noaa-nexrad-level2'
+    # networks:
+    #   - host
+    restart: always
