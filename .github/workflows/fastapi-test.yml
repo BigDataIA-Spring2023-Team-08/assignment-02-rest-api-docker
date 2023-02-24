@@ -16,7 +16,7 @@ jobs:
         id: commit
         uses: pr-mpt/actions-commit-hash@v2
       - 
-        name: Loading file from S#
+        name: Loading file from S3
         uses: keithweaver/aws-s3-github-action@v1.0.0
         with:
           command: cp
