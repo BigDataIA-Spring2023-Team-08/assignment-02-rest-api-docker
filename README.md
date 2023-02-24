@@ -32,11 +32,9 @@ The task involves decoupling the client and server from our data exploration too
 This work can help one: 
 
 - Access the publicly available SEVIR satellite radar data in a highly interactive & quick way
-- Schedule scrapping of the data from public AWS S3 buckets to store them into a personal S3 bucket by making use of Airflow. Makes it convenient to then perform additional tasks or use these saved files from your personal bucket with up to date data. Government’s public data can always be hard to navigate across but we make it easy with our application
-- Ensure smooth login for recurring users by creating and storing users in the database
+- Scrap the data from public AWS S3 buckets to store them into a personal S3 bucket making it convenient to then perform additional tasks or use these saved files from your personal bucket. Government’s public data can always be hard to navigate across but we make it easy with our application
 - Get files through the application by 2 options: searching by fields or directly entering a filename to get the URL from the source
 - View the map plot of all the NEXRAD satellite locations in the USA
-- Enable secure downloading and map viewing by providing the users with JWT Access token with an expiry time.
 .
 
 The application site for the project hosted on streamlit cloud can be accessed [here](https://satellite-data-team-08.streamlit.app/).
@@ -72,7 +70,6 @@ After populating these, the SQLite database is further used throughout our appli
 The NexRad map plot page on the streamlit UI queries all data from the `MAPDATA_NEXRAD` table in the SQLite database. The query pertaining to this is also present in the `query_metadata_database.py` script.
 
 ## Fast API
-In order to truly enable decoupling, FAST API calls are made to the Streamlit Application to perform operations that require querying the database to populate the Streamlit Login, Search, Generate URL and Download functionalities.
 
 
 ## Streamlit
@@ -92,9 +89,6 @@ The data exploration tool for the Geospatial startup uses the Python library [St
       - Download file by entering field values
       - Get public URL by entering filename
   - NEXRAD Maps Location page
-  
-### Sign up and Login Pages
-![Sign up Page](signup_user_created.png)
 
 ### Flow for Download file by entering field values
 1. Enter text box fields for each value (for example, in GOES18 it is year, day & hour)
@@ -225,39 +219,132 @@ pytest --html=test_results.html test.py
 ```
 
 ## Great Expectations
-[Great Expectations](https://docs.greatexpectations.io/docs/) is a tool used to validate, document and profile data in order to eliminate pipeline debt. The python library has been used on extracted GOES18 and NEXRAD csv data in this assignment.
+[Great Expectations](https://docs.greatexpectations.io/docs/) is a tool used to validate, document and profile data in order to eliminate pipeline debt. 
+- The python library has been used with Amazon Web Services (AWS) using S3 and Pandas to validate,document and generate reports for GOES18 and NEXRAD data stored in s3 bucket.
+- Great Expectation Checkpoints are executed in Apache Airflow by triggering validation of data asset using expectations suite directly within an Airflow DAG
 
 ### Steps
 
-**1. Setup**
+**Part 1. Setup**
 
-1.1. Install Great_Expectation module
+1.1. Verify AWS CLI 
+```
+aws --version
+```
+1.2. Verify AWS credentials
+```
+aws sts get-caller-identity
+```
+
+1.3. Install Great_Expectation module
 ```
 pip3 install great_expectations
 ```
-1.2. Verify version
+1.4. Verify version
 ```
 great_expectations --version
 ```
-output:`great_expectations, version 0.15.47`
+output:`great_expectations, version 0.15.50`
 
-1.3. Initialize Base Directory
+1.5. Install boto3
+```
+python3 -m pip install boto3
+```
+
+1.6. Create Data Context
 ```
 great_expectations init
 ```
-- Change working directory to Great Expectations base directory
+
+1.7 Configure Expectations and Validations Store on Amazon S3
+
+file-contents: `great_expectations.yml`
+
 ```
-cd great_expectations
+stores:
+  expectations_S3_store:
+      class_name: ExpectationsStore
+      store_backend:
+          class_name: TupleS3StoreBackend
+          bucket: '<your_s3_bucket_name>'
+          prefix: '<your_s3_bucket_folder_name>'
 ```
-- Create data folder for datasource to import `GOES18` and `NEXRAD` data
 
-1.4. Import data into Repo
+```
+expectations_store_name: expectations_S3_store
+```
 
-> GOES18
+```
+stores:
+  validations_S3_store:
+      class_name: ValidationsStore
+      store_backend:
+          class_name: TupleS3StoreBackend
+          bucket: '<your_s3_bucket_name>'
+          prefix: '<your_s3_bucket_folder_name>'
+```
 
-> NEXRAD
+```
+validations_store_name: validations_S3_store
+```
+  1.7.1 Verify Amazon S3 Expectations Stores
+  
+  `Command`
+  ```
+  great_expectations store list
+  ```
+  
+  `Output`
+  ```
+  - name: expectations_S3_store
+  class_name: ExpectationsStore
+  store_backend:
+    class_name: TupleS3StoreBackend
+    bucket: '<your_s3_bucket_name>'
+    prefix: '<your_s3_bucket_folder_name>'
+  ```
+  
+  ```
+  - name: validations_S3_store
+  class_name: ValidationsStore
+  store_backend:
+    class_name: TupleS3StoreBackend
+    bucket: '<your_s3_bucket_name>'
+    prefix: '<your_s3_bucket_folder_name>'
+  ```
+1.8 Add Amazon S3 site to Data_Docs_Site Section
+`great-expectations.yml`
+```
+  s3_site:  # this is a user-selected name - you may select your own
+    class_name: SiteBuilder
+    store_backend:
+      class_name: TupleS3StoreBackend
+      bucket: data-docs.my_org  # UPDATE the bucket name here to match the bucket you configured above.
+    site_index_builder:
+      class_name: DefaultSiteIndexBuilder
+      show_cta_footer: true
+```
+  1.8.1 Test Data Docs Configuration
+  `Command`
+  ```
+  great_expectations docs build --site-name s3_site
+  ```
+  
+  `Output`
+  ```
+  The following Data Docs sites will be built:
 
-**2. Datasource**
+ - s3_site: https://s3.amazonaws.com/<your_s3_bucket_name>/<your_s3_bucket_folder_name>/index.html
+
+Would you like to proceed? [Y/n]:Y
+  ```
+  ```
+  Building Data Docs...
+
+  Done building Data Docs
+  ```
+
+**2. Connect to Data**
 
 Configured datasources in order to connect to `GOES18` and `NEXRAD` data.
 
@@ -267,137 +354,149 @@ Configured datasources in order to connect to `GOES18` and `NEXRAD` data.
 great_expectations datasource new
 ```
 
-*Options to select from prompt:*
-
-> `1` - Local File 
->
-> `1` - Pandas
->
-> `data` - Relative path to GOES and NEXRAD datasets
-
-- `datasource_new` python notebook is generated
-
-* Rename datasource name i.e. `goes18-nexrad_datasource` 
-
-* Edit `example.yml` file to ignore non csv files
-
+2.2 Instantiate Project's Data Context
 ```
-example_yaml = f"""
-name: goes18-nexrad_datasource
-class_name: Datasource
-execution_engine:
-  class_name: PandasExecutionEngine
-data_connectors:
-  default_inferred_data_connector_name:
-    class_name: InferredAssetFilesystemDataConnector
-    base_directory: data
-    default_regex:
-      group_names:
-        - data_asset_name
-      pattern: (.*)\.csv
-  default_runtime_data_connector_name:
-    class_name: RuntimeDataConnector
-    assets:
-      my_runtime_asset_name:
-        batch_identifiers:
-          - runtime_batch_identifier_name
-"""
-print(example_yaml)
+from ruamel import yaml
+
+import great_expectations as gx
+from great_expectations.core.batch import Batch, BatchRequest, RuntimeBatchRequest
+context = gx.get_context()
+```
+
+2.3 Configure Datasource
+```
+datasource_config = {
+    "name": "my_s3_datasource",
+    "class_name": "Datasource",
+    "execution_engine": {"class_name": "PandasExecutionEngine"},
+    "data_connectors": {
+        "default_runtime_data_connector_name": {
+            "class_name": "RuntimeDataConnector",
+            "batch_identifiers": ["default_identifier_name"],
+        },
+        "default_inferred_data_connector_name": {
+            "class_name": "InferredAssetS3DataConnector",
+            "bucket": "<your_s3_bucket_name>",
+            "prefix": "<your_s3_bucket_folder_name>",
+            "default_regex": {
+                "pattern": "(.*)\\.csv",
+                "group_names": ["data_asset_name"],
+            },
+        },
+    },
+}
+
 ```
 
 - Save the datasource Configuration and close Jupyter notebook
-- Wait for terminal to show `Saving file at /datasource_new.ipynb`
+- Test Configuration using `context.test_yaml_config(yaml.dump(datasource_config))` command
+
+2.4 Save Datasource to DataContext
+
+```
+context.add_datasource(**datasource_config)
+```
+
+2.5 Test Datasource
+
+`Repeat for both GOES18 and NEXRAD SUITES`
+
+```
+batch_request = RuntimeBatchRequest(
+    datasource_name="my_s3_datasource",
+    data_connector_name="default_runtime_data_connector_name",
+    data_asset_name="",  # this can be anything that identifies this data_asset for you
+    runtime_parameters={"path": ""},  # Add your S3 path here.
+    batch_identifiers={"default_identifier_name": "default_identifier"},
+)
+```
+
+2.6 Load Data into Validator
+```
+context.add_or_update_expectation_suite(expectation_suite_name="test_suite")
+validator = context.get_validator(
+    batch_request=batch_request, expectation_suite_name="test_suite"
+)
+print(validator.head())
+```
+
 
 **3. Expectations**
 
-3.1 Create Expectation Suite with CLI
+3.1 Use Validators to add Expectations to Suite
+
+`Snippet`
 
 ```
-great_expectations suite new
+validator.expect_column_values_to_not_be_null(column="day")
+
+validator.expect_column_values_to_be_between(
+    column="day", min_value=1, max_value=365
+)
 ```
 
-*Options to select from prompt:*
+3.2 Save Expectation Suite
 
->`3` - Automatically, using a Data Assistant
->
->`1` - Select index of file `goes18_db_extract.csv` 
->
->*or*
->
->`2` - Select index of file `nexrad_db_extract.csv`
->
-> Suite Name: `goes18_suite` or `nexrad_suite` based on data file selected from prompt
+```
+validator.save_expectation_suite(discard_failed_expectations=False)
+```
 
-*Note: Proceed with steps 3 and onwards for each data file at a time.*
 
-- suite python notebook is generated
-
-- Update `exclude_column_names`:
-
-  - `goes18_suite`
-  
- 
-  ```
-  exclude_column_names = [
-  # "id",
-  # "product",
-  # "year",
-  # "day",
-  # "hour",
-  ]
-  ```
-  
-  - `nexrad_suite`
-  
-  
-  ```
-  exclude_column_names = [
-  # "id",
-  # "year",
-  # "month",
-  # "day",
-  # "ground_station",
-  ]
-  ```
- - Run all cells to create default expectation and analyze the result
-
- - Wait for terminal to show `Saving file at /*.ipynb`
-
- - Modify JSON files for suite as per need
- 
- For `goes18_suite`:
- 
- ```
- great_expectations suite edit goes18_suite
- ```
- 
-  For `nexrad_suite`:
- 
- ```
- great_expectations suite edit nexrad_suite
- ```
- 
- *Options to select from prompt:*
- 
- >`1` - Manually, without interacting with a sample batch of data (default)
- 
- 
 **4. Data Validation**
 
 4.1. Create Checkpoint 
 
-For `GOES18` checkpoint:
+`GOES18 Checkpoint`
+```
+my_checkpoint_name = "goes18_checkpoint_v0.1"
+checkpoint_config = {
+    "name": my_checkpoint_name,
+    "config_version": 1.0,
+    "class_name": "SimpleCheckpoint",
+    "run_name_template": "%Y%m%d-%H%M%S-my-run-name-template",
+}
+```
 
+
+`NEXRAD Checkpoint`
 ```
-great_expectations checkpoint new goes18_checkpoint_v0.1
+my_checkpoint_name = "nexrad_checkpoint_v0.1"
+checkpoint_config = {
+    "name": my_checkpoint_name,
+    "config_version": 1.0,
+    "class_name": "SimpleCheckpoint",
+    "run_name_template": "%Y%m%d-%H%M%S-my-run-name-template",
+}
 ```
 
-For `NEXRAD` checkpoint:
+4.2 Test and Save Checkpoint
 ```
-great_expectations checkpoint new nexrad_checkpoint_v0.1
+my_checkpoint = context.test_yaml_config(yaml.dump(checkpoint_config))
+```
+```
+context.add_or_update_checkpoint(**checkpoint_config)
 ```
 
-- checkpoint python notebook is generated, run all cells to generate report in new page
+4.3 Run Checkpoint
+```
+checkpoint_result = context.run_checkpoint(
+    checkpoint_name=my_checkpoint_name,
+    validations=[
+        {
+            "batch_request": batch_request,
+            "expectation_suite_name": <your_expectation_suite_name>,
+        }
+    ],
+)
+```
+
+4.4 Build and View Data Docs
+```
+context.open_data_docs()
+```
+
+**5. Deploy using GitHub Actions**
+
 
 **5. Deploy using GitHub Actions**
 
