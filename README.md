@@ -5,7 +5,7 @@
 
 > ✅ Active status <br>
 > [🔗 Application link](https://satellite-data-team-08.streamlit.app/) <br>
-> [🎬 Codelab Slides](https://codelabs-preview.appspot.com/?file_id=1rG9fxVZ4SBsdXiCKXDtpCvfvNyWXzKivUAqlXrMw5L8#2)
+> [🎬 Codelab Slides](https://codelabs-preview.appspot.com/?file_id=1rG9fxVZ4SBsdXiCKXDtpCvfvNyWXzKivUAqlXrMw5L8#0)
 
 
 ----- 
