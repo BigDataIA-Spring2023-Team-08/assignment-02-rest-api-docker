@@ -313,6 +313,7 @@ validations_store_name: validations_S3_store
     prefix: '<your_s3_bucket_folder_name>'
   ```
 1.8 Add Amazon S3 site to Data_Docs_Site Section
+
 `great-expectations.yml`
 ```
   s3_site:  # this is a user-selected name - you may select your own
@@ -496,6 +497,7 @@ context.open_data_docs()
 ```
 
 **5. Great Expectations with Airflow**
+
 5.1 Install GreatExpectationsOperator
 ```
 pip install airflow-provider-great-expectations==0.1.1
