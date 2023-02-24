@@ -14,6 +14,7 @@
 
 ## Index
   - [Abstract 📝](#abstract)
+  - [Architecture Diagram](
   - [Data Sources 💽](#data-sources)
   - [Scraping Data and Copying to AWS S3 bucket🧊](#scraping-data-and-copying-to-aws-s3-bucket)
   - [SQLite DB 🛢](#sqlite-db)
@@ -37,6 +38,10 @@ This work can help one:
 .
 
 The application site for the project hosted on streamlit cloud can be accessed [here](https://satellite-data-team-08.streamlit.app/).
+
+## Architecture Diagram
+This architecture diagram depicts the flow of the application and the relationships between services.
+![Architecure Diagram](assignment_2_workflow.png)
 
 ## Data Sources
 The National Oceanic and Atmospheric Administration (NOAA) is a government agency responsible for monitoring the weather and climate of the United States. It operates two types of satellites, the [Geostationary Operational Environmental Satellite (GOES)](https://www.goes.noaa.gov) and the [Next Generation Weather Radar (NexRad)](https://www.ncei.noaa.gov/products/radar/next-generation-weather-radar) , which collect data on various meteorological phenomena. This data is then made publicly available through the NOAA website, allowing data analysts to easily access it. We have aimed to build a data exploration tool that leverages these publicly available data sources to simplify the process of downloading and analyzing the data.
