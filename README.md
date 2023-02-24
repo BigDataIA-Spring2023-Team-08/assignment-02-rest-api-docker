@@ -72,6 +72,7 @@ After populating these, the SQLite database is further used throughout our appli
 The NexRad map plot page on the streamlit UI queries all data from the `MAPDATA_NEXRAD` table in the SQLite database. The query pertaining to this is also present in the `query_metadata_database.py` script.
 
 ## Fast API
+In order to truly enable decoupling, FAST API calls are made to the Streamlit Application to perform operations that require querying the database to populate the Streamlit Login, Search, Generate URL and Download functionalities.
 
 
 ## Streamlit
