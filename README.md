@@ -17,7 +17,7 @@
   - [Data Sources 💽](#data-sources)
   - [Scraping Data and Copying to AWS S3 bucket🧊](#scraping-data-and-copying-to-aws-s3-bucket)
   - [SQLite DB 🛢](#sqlite-db)
-  - [Fast API ⚡️] (#fast-api)  
+  - [Fast API ⚡️](#fast-api)  
   - [Streamlit UI 🖥️](#streamlit)
   - [Storing logs to AWS CloudWatch 💾](#storing-logs-to-aws-cloudwatch)
   - [Unit Testing ⚒️](#unit-testing)
