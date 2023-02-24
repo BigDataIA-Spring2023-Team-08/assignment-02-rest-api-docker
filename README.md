@@ -1,5 +1,3 @@
-[![fastapi-test-ci](https://github.com/BigDataIA-Spring2023-Team-08/assignment-02-rest-api-docker/actions/workflows/fastapi-test.yml/badge.svg)](https://github.com/BigDataIA-Spring2023-Team-08/assignment-02-rest-api-docker/actions/workflows/fastapi-test.yml)
-
 # assignment-02-rest-api-docker
 
 # Building a API for Satellite Data Exploration Tool for Geospatial Startups: Utilizing NOAA's NexRad and GOES Satellite Data Sources
