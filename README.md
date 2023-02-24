@@ -14,7 +14,7 @@
 
 ## Index
   - [Abstract 📝](#abstract)
-  - [Architecture Diagram](
+  - [Architecture Diagram](#architecture-diagram)
   - [Data Sources 💽](#data-sources)
   - [Scraping Data and Copying to AWS S3 bucket🧊](#scraping-data-and-copying-to-aws-s3-bucket)
   - [SQLite DB 🛢](#sqlite-db)
