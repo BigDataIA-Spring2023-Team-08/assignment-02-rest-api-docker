@@ -32,11 +32,9 @@ The task involves decoupling the client and server from our data exploration too
 This work can help one: 
 
 - Access the publicly available SEVIR satellite radar data in a highly interactive & quick way
-- Schedule the job to scrap the data from public AWS S3 buckets using Airflow to store them into a personal S3 bucket. Makes it convenient to then perform additional tasks or use these saved files from your personal bucket which has up to date data. Government’s public data can always be hard to navigate across but we make it easy with our application
-- Ensures smooth login for recurring users by creating account and storing their details in the Database
+- Scrap the data from public AWS S3 buckets to store them into a personal S3 bucket making it convenient to then perform additional tasks or use these saved files from your personal bucket. Government’s public data can always be hard to navigate across but we make it easy with our application
 - Get files through the application by 2 options: searching by fields or directly entering a filename to get the URL from the source
 - View the map plot of all the NEXRAD satellite locations in the USA
-- abcd
 .
 
 The application site for the project hosted on streamlit cloud can be accessed [here](https://satellite-data-team-08.streamlit.app/).
@@ -348,7 +346,7 @@ Would you like to proceed? [Y/n]:Y
 
 **2. Connect to Data**
 
-Configured datasources in order to connect to `GOES18` and `NEXRAD` data.
+Configured datasources in order to connect to `GOES18` and `NEXRAD` data in S3 Bucket.
 
 2.1. Create datasource with CLI
 
@@ -497,17 +495,43 @@ checkpoint_result = context.run_checkpoint(
 context.open_data_docs()
 ```
 
-**5. Deploy using GitHub Actions**
+**5. Great Expectations with Airflow**
+5.1 Install GreatExpectationsOperator
+```
+pip install airflow-provider-great-expectations==0.1.1
+```
 
+5.2 Import GreatExpectationsOperator to DAG
+```
+from great_expectations_provider.operators.great_expectations import GreatExpectationsOperator
+from great_expectations.core.batch import BatchRequest
+from great_expectations.data_context.types.base import (
+    DataContextConfig,
+    CheckpointConfig
+)
+```
 
-**5. Deploy using GitHub Actions**
+5.3 DAGS for GOES18 and NEXRAD Checkpoints
+```
+with dag:
+    ge_goes18_checkpoint_pass = GreatExpectationsOperator(
+        task_id="task_goes18_checkpoint",
+        data_context_root_dir=ge_root_dir,
+        checkpoint_name="goes18_checkpoint_v0.1"
+    )
+    ge_nexrad_checkpoint_pass = GreatExpectationsOperator(
+        task_id="task_nexrad_checkpoint",
+        data_context_root_dir=ge_root_dir,
+        checkpoint_name="nexrad_checkpoint_v0.2",
+        trigger_rule="all_done"
+    )
+```
 
- - Go to Project Settings
- - Navigate to GitHub Pages 
- - Select `GitHub Actions` as source for build and deployment
- - Configure Static HTML for GitHub Actions workflow to deploy static files in a repository without a build
- - Set path to `great_expectations/uncommitted/data_docs/local_site` in `static.yml` file
- - Commit changes
+5.4 Define Order of DAG Workflow
+
+```
+    ge_goes18_checkpoint_pass >> ge_nexrad_checkpoint_pass
+```
 
 -----
 > WE ATTEST THAT WE HAVEN’T USED ANY OTHER STUDENTS’ WORK IN OUR ASSIGNMENT AND ABIDE BY THE POLICIES LISTED IN THE STUDENT HANDBOOK.
