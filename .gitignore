@@ -127,3 +127,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#virtual environment
+airflow-great-expectations/ge/ge_venv
+
+#Great Expectations
+airflow-great-expectations/ge/great_expectations/checkpoints
+
+airflow-great-expectations/ge/great_expectations/expectations/.ge_store_backend_id
+airflow-great-expectations/ge/great_expectations/plugins
+
+airflow-great-expectations/ge/great_expectations/uncommitted/config_variables.yml
+airflow-great-expectations/ge/great_expectations/uncommitted/validations
