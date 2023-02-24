@@ -80,7 +80,7 @@ The data exploration tool for the Geospatial startup uses the Python library [St
   - Login/ Signup Functionality
     - Login page for returning users to enter username and password to get access to the data exploration application
     - Signup page for new users to enter name, username, password and confirm password to access the application
-   - Logout
+  - Logout
     - Logout users to end session and return to Login/ Signup page
   - GOES18 data downloader page
       - Download file by entering field values
