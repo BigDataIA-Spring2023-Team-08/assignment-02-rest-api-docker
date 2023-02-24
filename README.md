@@ -313,6 +313,7 @@ validations_store_name: validations_S3_store
     prefix: '<your_s3_bucket_folder_name>'
   ```
 1.8 Add Amazon S3 site to Data_Docs_Site Section
+
 `great-expectations.yml`
 ```
   s3_site:  # this is a user-selected name - you may select your own
@@ -346,7 +347,7 @@ Would you like to proceed? [Y/n]:Y
 
 **2. Connect to Data**
 
-Configured datasources in order to connect to `GOES18` and `NEXRAD` data.
+Configured datasources in order to connect to `GOES18` and `NEXRAD` data in S3 Bucket.
 
 2.1. Create datasource with CLI
 
@@ -495,17 +496,44 @@ checkpoint_result = context.run_checkpoint(
 context.open_data_docs()
 ```
 
-**5. Deploy using GitHub Actions**
+**5. Great Expectations with Airflow**
 
+5.1 Install GreatExpectationsOperator
+```
+pip install airflow-provider-great-expectations==0.1.1
+```
 
-**5. Deploy using GitHub Actions**
+5.2 Import GreatExpectationsOperator to DAG
+```
+from great_expectations_provider.operators.great_expectations import GreatExpectationsOperator
+from great_expectations.core.batch import BatchRequest
+from great_expectations.data_context.types.base import (
+    DataContextConfig,
+    CheckpointConfig
+)
+```
 
- - Go to Project Settings
- - Navigate to GitHub Pages 
- - Select `GitHub Actions` as source for build and deployment
- - Configure Static HTML for GitHub Actions workflow to deploy static files in a repository without a build
- - Set path to `great_expectations/uncommitted/data_docs/local_site` in `static.yml` file
- - Commit changes
+5.3 DAGS for GOES18 and NEXRAD Checkpoints
+```
+with dag:
+    ge_goes18_checkpoint_pass = GreatExpectationsOperator(
+        task_id="task_goes18_checkpoint",
+        data_context_root_dir=ge_root_dir,
+        checkpoint_name="goes18_checkpoint_v0.1"
+    )
+    ge_nexrad_checkpoint_pass = GreatExpectationsOperator(
+        task_id="task_nexrad_checkpoint",
+        data_context_root_dir=ge_root_dir,
+        checkpoint_name="nexrad_checkpoint_v0.2",
+        trigger_rule="all_done"
+    )
+```
+
+5.4 Define Order of DAG Workflow
+
+```
+    ge_goes18_checkpoint_pass >> ge_nexrad_checkpoint_pass
+```
 
 -----
 > WE ATTEST THAT WE HAVEN’T USED ANY OTHER STUDENTS’ WORK IN OUR ASSIGNMENT AND ABIDE BY THE POLICIES LISTED IN THE STUDENT HANDBOOK.
