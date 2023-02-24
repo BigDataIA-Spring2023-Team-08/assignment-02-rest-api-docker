@@ -32,9 +32,11 @@ The task involves decoupling the client and server from our data exploration too
 This work can help one: 
 
 - Access the publicly available SEVIR satellite radar data in a highly interactive & quick way
-- Scrap the data from public AWS S3 buckets to store them into a personal S3 bucket making it convenient to then perform additional tasks or use these saved files from your personal bucket. Government’s public data can always be hard to navigate across but we make it easy with our application
+- Schedule the job to scrap the data from public AWS S3 buckets using Airflow to store them into a personal S3 bucket. Makes it convenient to then perform additional tasks or use these saved files from your personal bucket which has up to date data. Government’s public data can always be hard to navigate across but we make it easy with our application
+- Ensures smooth login for recurring users by creating account and storing their details in the Database
 - Get files through the application by 2 options: searching by fields or directly entering a filename to get the URL from the source
 - View the map plot of all the NEXRAD satellite locations in the USA
+- 
 .
 
 The application site for the project hosted on streamlit cloud can be accessed [here](https://satellite-data-team-08.streamlit.app/).
