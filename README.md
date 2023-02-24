@@ -76,6 +76,12 @@ The NexRad map plot page on the streamlit UI queries all data from the `MAPDATA_
 The data exploration tool for the Geospatial startup uses the Python library [Streamlit](https://streamlit.iohttps://streamlit.io) for its user interface. The tool offers a user-friendly experience with three distinct pages, each dedicated to NexRad, GOES, and NexRad location maps. On each page, users can choose between downloading satellite data based on filename or specific field criteria. The UI then displays a download link to the S3 bucket, enabling users to successfully retrieve the desired satellite images.
 
 ### Streamlit UI layout:
+
+  - Login/ Signup Functionality
+    - Login page for returning users to enter username and password to get access to the data exploration application
+    - Signup page for new users to enter name, username, password and confirm password to access the application
+  - Logout
+    - Logout users to end session and return to Login/ Signup page
   - GOES18 data downloader page
       - Download file by entering field values
       - Get public URL by entering filename
