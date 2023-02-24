@@ -1,5 +1,3 @@
-# assignment-02-rest-api-docker
-
 # Building a API for Satellite Data Exploration Tool for Geospatial Startups: Utilizing NOAA's NexRad and GOES Satellite Data Sources
 -----
 
