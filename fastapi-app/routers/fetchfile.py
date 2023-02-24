@@ -3,18 +3,21 @@ import boto3
 import time
 import re
 import requests
+import schema, userdb, db_model, oauth2
 from fastapi import FastAPI, APIRouter, status, HTTPException, Depends
 from dotenv import load_dotenv
 
 #load env variables
 load_dotenv()
+
+#create router object
 router = APIRouter(
     prefix="/fetchfile",
     tags=['fetchfile']
 )
 
 @router.post('/goes18', status_code=status.HTTP_200_OK)
-async def generate_goes_url(file_name : str):
+async def generate_goes_url(file_name : str, current_user: schema.User = Depends(oauth2.get_current_user)):
 
     """Generates URL of a file present on the original GOES-18 S3 bucket given a filename. Function 
     also checks for filename format input and cases when filename format is correct but no such file 
@@ -55,11 +58,11 @@ async def generate_goes_url(file_name : str):
         if(response.status_code == 404):    #if format is correct but no such file exists
             clientLogs.put_log_events(      #logging to AWS CloudWatch logs
                 logGroupName = "assignment-02",
-                logStreamName = "try",
+                logStreamName = "api",
                 logEvents = [
                     {
                     'timestamp' : int(time.time() * 1e3),
-                    'message' : "No such file exists at GOES18 location"
+                    'message' : "404: No such file exists at GOES18 location"
                     }
                 ]
             )
@@ -69,11 +72,11 @@ async def generate_goes_url(file_name : str):
         #else provide URL
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                     'timestamp' : int(time.time() * 1e3),
-                    'message' : "Successfully found URL for given file name for GOES18; \nFilename requested for download: " + file_name
+                    'message' : "200: Successfully found URL for given file name for GOES18; \nFilename requested for download: " + file_name
                 }
             ]
         )
@@ -82,11 +85,11 @@ async def generate_goes_url(file_name : str):
     else:   #in case the filename format provided by user is wrong
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                     'timestamp' : int(time.time() * 1e3),
-                    'message' : "Invalid filename format for GOES18"
+                    'message' : "400: Invalid filename format for GOES18"
                 }
             ]
         )
@@ -94,7 +97,7 @@ async def generate_goes_url(file_name : str):
                 status_code=status.HTTP_400_BAD_REQUEST, detail= "Invalid filename format for GOES18")
 
 @router.post('/nexrad', status_code=status.HTTP_200_OK)
-async def generate_nexrad_url(file_name : str):
+async def generate_nexrad_url(file_name : str, current_user: schema.User = Depends(oauth2.get_current_user)):
 
     """Generates URL of a file present on the original NEXRAD S3 bucket given a filename. Function also 
     checks for filename format input and cases when filename format is correct but no such file exists. 
@@ -129,11 +132,11 @@ async def generate_nexrad_url(file_name : str):
         if(response.status_code == 404):    #if format is correct but no such file exists
             clientLogs.put_log_events(      #logging to AWS CloudWatch logs
                 logGroupName = "assignment-02",
-                logStreamName = "try",
+                logStreamName = "api",
                 logEvents = [
                     {
                     'timestamp' : int(time.time() * 1e3),
-                    'message' : "No such file exists at NEXRAD location"
+                    'message' : "404: No such file exists at NEXRAD location"
                     }
                 ]
             )
@@ -143,11 +146,11 @@ async def generate_nexrad_url(file_name : str):
         #else provide URL
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                     'timestamp' : int(time.time() * 1e3),
-                    'message' : "Successfully found URL for given file name for NEXRAD \nFilename requested for download: " + file_name
+                    'message' : "200: Successfully found URL for given file name for NEXRAD \nFilename requested for download: " + file_name
                 }
             ]
         )
@@ -156,11 +159,11 @@ async def generate_nexrad_url(file_name : str):
     else:   #in case the filename format provided by user is wrong
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                     'timestamp' : int(time.time() * 1e3),
-                    'message' : "Invalid filename format for NEXRAD"
+                    'message' : "400: Invalid filename format for NEXRAD"
                 }
             ]
         )

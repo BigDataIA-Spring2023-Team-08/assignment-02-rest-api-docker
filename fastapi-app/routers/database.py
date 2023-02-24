@@ -2,12 +2,18 @@ from typing import Union
 from fastapi import FastAPI, APIRouter, status, HTTPException, Depends
 import sqlite3
 from sqlite3 import Connection
+import schema, userdb, db_model, oauth2
 import os
 from dotenv import load_dotenv
 from get_database_file import get_database_file
 import boto3
+import time
 import pandas as pd
 
+#load env variables
+load_dotenv()
+
+#create router object
 router = APIRouter(
     prefix="/database",
     tags=['Database']
@@ -25,12 +31,39 @@ async def get_product_goes(db_conn : Connection = Depends(get_database_file)):
     A list containing all distinct product names or False (bool) in case of error
     """
 
+    #authenticate S3 client for logging with your user credentials that are stored in your .env config file
+    clientLogs = boto3.client('logs',
+                        region_name='us-east-1',
+                        aws_access_key_id = os.environ.get('AWS_LOG_ACCESS_KEY'),
+                        aws_secret_access_key = os.environ.get('AWS_LOG_SECRET_KEY')
+                        )
+
     query = "SELECT DISTINCT product FROM GOES_METADATA"   #sql query to execute
     df_product = pd.read_sql_query(query, db_conn)
     product = df_product['product'].tolist()    #convert the returned df to a list
-    if (len(product)!=0):
+    if (len(product)!=0):   #valid response
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "200: Success, product found"
+                }
+            ]
+        )
         return product
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Please make sure you entered valid product"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Please make sure you entered valid product")
 
@@ -47,12 +80,39 @@ async def get_years_in_product_goes(product : str = 'ABI-L1b-RadC', db_conn : Co
     A list containing all distinct years for given product name 
     """
 
+    #authenticate S3 client for logging with your user credentials that are stored in your .env config file
+    clientLogs = boto3.client('logs',
+                        region_name='us-east-1',
+                        aws_access_key_id = os.environ.get('AWS_LOG_ACCESS_KEY'),
+                        aws_secret_access_key = os.environ.get('AWS_LOG_SECRET_KEY')
+                        )
+
     query = "SELECT DISTINCT year FROM GOES_METADATA WHERE product = " + "\'" + product + "\'" #sql query to execute
     df_year = pd.read_sql_query(query, db_conn)
     years = df_year['year'].tolist()   #convert the returned df to a list
-    if (len(years)!=0):
+    if (len(years)!=0): #valid response
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "200: Success, years found"
+                }
+            ]
+        )
         return years
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Please make sure you entered valid product"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Please make sure you entered valid product")
 
@@ -71,12 +131,39 @@ async def get_days_in_year_goes(year : str, product : str = 'ABI-L1b-RadC', db_c
     A list containing all distinct days for given year 
     """
 
+    #authenticate S3 client for logging with your user credentials that are stored in your .env config file
+    clientLogs = boto3.client('logs',
+                        region_name='us-east-1',
+                        aws_access_key_id = os.environ.get('AWS_LOG_ACCESS_KEY'),
+                        aws_secret_access_key = os.environ.get('AWS_LOG_SECRET_KEY')
+                        )
+
     query = "SELECT DISTINCT day FROM GOES_METADATA WHERE year = " + "\'" + year + "\'" + "AND product = " + "\'" + product + "\'" #sql query to execute
     df_day = pd.read_sql_query(query, db_conn)
     days = df_day['day'].tolist() #convert the returned df to a list
-    if (len(days)!=0):
+    if (len(days)!=0):  #valid response
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "200: Success, days found"
+                }
+            ]
+        )
         return days
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Please make sure you entered valid value(s)"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Please make sure you entered valid value(s)")
 
@@ -97,12 +184,39 @@ async def get_hours_in_day_goes(day : str, year : str, product : str = 'ABI-L1b-
     A list containing all distinct hours for given day 
     """
     
+    #authenticate S3 client for logging with your user credentials that are stored in your .env config file
+    clientLogs = boto3.client('logs',
+                        region_name='us-east-1',
+                        aws_access_key_id = os.environ.get('AWS_LOG_ACCESS_KEY'),
+                        aws_secret_access_key = os.environ.get('AWS_LOG_SECRET_KEY')
+                        )
+
     query = "SELECT DISTINCT hour FROM GOES_METADATA WHERE day = " + "\'" + day + "\'" + "AND year = " + "\'" + year + "\'" + "AND product = " + "\'" + product + "\'" #sql query to execute
     df_hour = pd.read_sql_query(query, db_conn)
     hours = df_hour['hour'].tolist()   #convert the returned df to a list
-    if (len(hours)!=0):
+    if (len(hours)!=0): #valid response
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "200: Success, hours found"
+                }
+            ]
+        )
         return hours
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Please make sure you entered valid product"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Please make sure you entered valid value(s)")
 
@@ -119,12 +233,39 @@ async def get_years_nexrad(db_conn : Connection = Depends(get_database_file)):
     A list containing all distinct years or False (bool) in case of error
     """
      
+    #authenticate S3 client for logging with your user credentials that are stored in your .env config file
+    clientLogs = boto3.client('logs',
+                        region_name='us-east-1',
+                        aws_access_key_id = os.environ.get('AWS_LOG_ACCESS_KEY'),
+                        aws_secret_access_key = os.environ.get('AWS_LOG_SECRET_KEY')
+                        )
+
     query = "SELECT DISTINCT year FROM NEXRAD_METADATA"
     df_year = pd.read_sql_query(query, db_conn)
     years = df_year['year'].tolist()   #convert the returned df to a list
-    if (len(years)!=0):
+    if (len(years)!=0): #valid response
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "200: Success, years found"
+                }
+            ]
+        )
         return years
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Please make sure you entered valid product"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Please make sure you entered valid value(s)")
 
@@ -141,14 +282,40 @@ async def get_months_in_year_nexrad(year : str, db_conn : Connection = Depends(g
     Returns:
     A list containing all distinct month values 
     """
+
+    #authenticate S3 client for logging with your user credentials that are stored in your .env config file
+    clientLogs = boto3.client('logs',
+                        region_name='us-east-1',
+                        aws_access_key_id = os.environ.get('AWS_LOG_ACCESS_KEY'),
+                        aws_secret_access_key = os.environ.get('AWS_LOG_SECRET_KEY')
+                        )
      
     query = "SELECT DISTINCT month FROM NEXRAD_METADATA WHERE year = " + "\'" + year + "\'"    #sql query to execute
     df_month = pd.read_sql_query(query, db_conn)
     months = df_month['month'].tolist()     #convert the returned df to a list
-    return months
-    if (len(months)!=0):
+    if (len(months)!=0):    #valid response
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "200: Success, months found"
+                }
+            ]
+        )
         return months
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Please make sure you entered valid product"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Please make sure you entered valid value(s)")
 
@@ -168,12 +335,39 @@ async def get_days_in_month_nexrad(month : str, year: str, db_conn : Connection 
     A list containing all distinct day values 
     """
 
+    #authenticate S3 client for logging with your user credentials that are stored in your .env config file
+    clientLogs = boto3.client('logs',
+                        region_name='us-east-1',
+                        aws_access_key_id = os.environ.get('AWS_LOG_ACCESS_KEY'),
+                        aws_secret_access_key = os.environ.get('AWS_LOG_SECRET_KEY')
+                        )
+
     query = "SELECT DISTINCT day FROM NEXRAD_METADATA WHERE month = " + "\'" + month + "\'" + "AND year = " + "\'" + year + "\'"   #sql query to execute
     df_day = pd.read_sql_query(query, db_conn)
     days = df_day['day'].tolist() #convert the returned df to a list
-    if (len(days)!=0):
+    if (len(days)!=0):  #valid response
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "200: Success, days found"
+                }
+            ]
+        )
         return days
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Please make sure you entered valid product"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Please make sure you entered valid value(s)")
 
@@ -195,17 +389,44 @@ async def get_stations_for_day_nexrad(day : str, month : str, year : str, db_con
     A list containing all distinct day values 
     """
 
+    #authenticate S3 client for logging with your user credentials that are stored in your .env config file
+    clientLogs = boto3.client('logs',
+                        region_name='us-east-1',
+                        aws_access_key_id = os.environ.get('AWS_LOG_ACCESS_KEY'),
+                        aws_secret_access_key = os.environ.get('AWS_LOG_SECRET_KEY')
+                        )
+
     query = "SELECT DISTINCT ground_station FROM NEXRAD_METADATA WHERE day = " + "\'" + day + "\'" + "AND month = " + "\'" + month + "\'" + " AND year =" + "\'" + year + "\'"   #sql query to execute
     df_station = pd.read_sql_query(query, db_conn)
     stations = df_station['ground_station'].tolist()  #convert the returned df to a list
-    if (len(stations)!=0):
+    if (len(stations)!=0):  #valid response
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "200: Success, Stations found"
+                }
+            ]
+        )
         return stations
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Please make sure you entered valid product"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Please make sure you entered valid value(s)")
 
 @router.get('/mapdata', status_code=status.HTTP_200_OK)
-async def get_nextrad_mapdata(db_conn : Connection = Depends(get_database_file)):
+async def get_nextrad_mapdata(db_conn : Connection = Depends(get_database_file), current_user: schema.User = Depends(oauth2.get_current_user)):
 
     """Function to query all data from the SQLite database's MAPDATA_NEXRAD (NEXRAD satellite locations) 
     table. The function handles case when table does not exists.
@@ -217,7 +438,14 @@ async def get_nextrad_mapdata(db_conn : Connection = Depends(get_database_file))
     A dataframe containing entire table or HTTP error 404 in case of error
     """
 
-    map_dict = {}
+    #authenticate S3 client for logging with your user credentials that are stored in your .env config file
+    clientLogs = boto3.client('logs',
+                        region_name='us-east-1',
+                        aws_access_key_id = os.environ.get('AWS_LOG_ACCESS_KEY'),
+                        aws_secret_access_key = os.environ.get('AWS_LOG_SECRET_KEY')
+                        )
+
+    map_dict = {}   #to store response return
     query = "SELECT * FROM MAPDATA_NEXRAD"
     df_mapdata = pd.read_sql_query(query, db_conn)
 
@@ -233,10 +461,30 @@ async def get_nextrad_mapdata(db_conn : Connection = Depends(get_database_file))
     map_dict['counties'] = counties
     map_dict['latitude'] = latitude
     map_dict['longitude'] = longitude
-    map_dict['elevation'] = elevation
+    map_dict['elevation'] = elevation   #populate response dict with everything
 
-    if (len(df_mapdata.index)!=0):
+    if (len(df_mapdata.index)!=0):  #valid response
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "200: Success, mapdata found"
+                }
+            ]
+        )
         return map_dict
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Please make sure you entered valid product"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Unable to fetch mapdata")

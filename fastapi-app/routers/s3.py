@@ -1,11 +1,14 @@
 import os
 import boto3
 import time
+import schema, userdb, db_model, oauth2
 from fastapi import FastAPI, APIRouter, status, HTTPException, Depends
 from dotenv import load_dotenv
 
 #load env variables
 load_dotenv()
+
+#create router object
 router = APIRouter(
     prefix="/s3",
     tags=['s3']
@@ -52,11 +55,11 @@ async def list_files_in_goes18_bucket(year : str, day : str, hour : str, product
     goes18_bucket = s3resource.Bucket(os.environ.get('GOES18_BUCKET_NAME'))
     clientLogs.put_log_events(      #logging to AWS CloudWatch logs
         logGroupName = "assignment-02",
-        logStreamName = "try",
+        logStreamName = "api",
         logEvents = [
             {
             'timestamp' : int(time.time() * 1e3),
-            'message' : "Printing files from GOES18 S3 bucket"
+            'message' : "200: Printing files from GOES18 S3 bucket"
             }
         ]
     )
@@ -65,10 +68,20 @@ async def list_files_in_goes18_bucket(year : str, day : str, hour : str, product
         file_path = file_path.split('/')
         files.append(file_path[-1])
 
-    if (len(files)!=0):
+    if (len(files)!=0):     #valid response
         return files
 
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Unable to fetch filenames from S3 bucket"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Unable to fetch filenames from S3 bucket")
 
@@ -113,11 +126,11 @@ async def list_files_in_nexrad_bucket(year : str, month : str, day : str, ground
     nexrad_bucket = s3resource.Bucket(os.environ.get('NEXRAD_BUCKET_NAME'))
     clientLogs.put_log_events(      #logging to AWS CloudWatch logs
         logGroupName = "assignment-02",
-        logStreamName = "try",
+        logStreamName = "api",
         logEvents = [
             {
             'timestamp' : int(time.time() * 1e3),
-            'message' : "Printing files from NEXRAD S3 bucket"
+            'message' : "200: Printing files from NEXRAD S3 bucket"
             }
         ]
     )
@@ -126,15 +139,25 @@ async def list_files_in_nexrad_bucket(year : str, month : str, day : str, ground
         file_path = file_path.split('/')
         files.append(file_path[-1])
 
-    if (len(files)!=0):
+    if (len(files)!=0):     #valid response
         return files
 
     else:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Unable to fetch filenames from S3 bucket"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Unable to fetch filenames from S3 bucket")
 
 @router.post('/goes18/copyfile', status_code=status.HTTP_200_OK)
-async def copy_goes_file_to_user_bucket(file_name : str, product : str, year : str, day : str, hour : str):
+async def copy_goes_file_to_user_bucket(file_name : str, product : str, year : str, day : str, hour : str, current_user: schema.User = Depends(oauth2.get_current_user)):
 
     """Function copies the selected file (from GOES-18 bucket) to the user bucket. It takes in the file name and product,
     year, day, hour selections to find the file and make a copy of it on the user bucket. If the file already exists in
@@ -178,7 +201,7 @@ async def copy_goes_file_to_user_bucket(file_name : str, product : str, year : s
         all_selections_string = product+'/'+year+'/'+day+'/'+hour+'/'+file_name
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                 'timestamp' : int(time.time() * 1e3),
@@ -188,7 +211,7 @@ async def copy_goes_file_to_user_bucket(file_name : str, product : str, year : s
         )
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                 'timestamp' : int(time.time() * 1e3),
@@ -209,7 +232,7 @@ async def copy_goes_file_to_user_bucket(file_name : str, product : str, year : s
             if(file.key == destination_key):    #if selected file already exists at destination bucket
                 clientLogs.put_log_events(      #logging to AWS CloudWatch logs
                     logGroupName = "assignment-02",
-                    logStreamName = "try",
+                    logStreamName = "api",
                     logEvents = [
                         {
                         'timestamp' : int(time.time() * 1e3),
@@ -219,11 +242,11 @@ async def copy_goes_file_to_user_bucket(file_name : str, product : str, year : s
                 )
                 clientLogs.put_log_events(      #logging to AWS CloudWatch logs
                     logGroupName = "assignment-02",
-                    logStreamName = "try",
+                    logStreamName = "api",
                     logEvents = [
                         {
                         'timestamp' : int(time.time() * 1e3),
-                        'message' : "Displaying download link for already existing file "+ file_name + " with selections " + all_selections_string
+                        'message' : "200: Displaying download link for already existing file "+ file_name + " with selections " + all_selections_string
                         }
                     ]
                 )
@@ -232,21 +255,21 @@ async def copy_goes_file_to_user_bucket(file_name : str, product : str, year : s
         destination_bucket.copy(copy_source, destination_key)   #copy file to destination bucket
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                 'timestamp' : int(time.time() * 1e3),
-                'message' : "File copied to S3 bucket successfully"
+                'message' : "200: File copied to S3 bucket successfully"
                 }
             ]
         )
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                 'timestamp' : int(time.time() * 1e3),
-                'message' : "Displaying download link for copied file "+ file_name + " with selections " + all_selections_string
+                'message' : "200: Displaying download link for copied file "+ file_name + " with selections " + all_selections_string
                 }
             ]
         )
@@ -254,11 +277,21 @@ async def copy_goes_file_to_user_bucket(file_name : str, product : str, year : s
         return url_to_mys3
 
     except: 
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Unable to copy file"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Unable to copy file")
 
 @router.post('/nexrad/copyfile', status_code=status.HTTP_200_OK)
-def copy_nexrad_file_to_user_bucket(file_name : str, year : str, month : str, day : str, ground_station : str):
+def copy_nexrad_file_to_user_bucket(file_name : str, year : str, month : str, day : str, ground_station : str, current_user: schema.User = Depends(oauth2.get_current_user)):
 
     """Function copies the selected file (from NEXRAD bucket) to the user bucket. It takes in the file name and year,
     month, day, ground station selections to find the file and make a copy of it on the user bucket. If the file already 
@@ -301,7 +334,7 @@ def copy_nexrad_file_to_user_bucket(file_name : str, year : str, month : str, da
         all_selections_string = year+'/'+month+'/'+day+'/'+ground_station+'/'+file_name
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                 'timestamp' : int(time.time() * 1e3),
@@ -311,7 +344,7 @@ def copy_nexrad_file_to_user_bucket(file_name : str, year : str, month : str, da
         )
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                 'timestamp' : int(time.time() * 1e3),
@@ -331,7 +364,7 @@ def copy_nexrad_file_to_user_bucket(file_name : str, year : str, month : str, da
             if(file.key == destination_key):    #if selected file already exists at destination bucket
                 clientLogs.put_log_events(      #logging to AWS CloudWatch logs
                     logGroupName = "assignment-02",
-                    logStreamName = "try",
+                    logStreamName = "api",
                     logEvents = [
                         {
                         'timestamp' : int(time.time() * 1e3),
@@ -341,11 +374,11 @@ def copy_nexrad_file_to_user_bucket(file_name : str, year : str, month : str, da
                 )
                 clientLogs.put_log_events(      #logging to AWS CloudWatch logs
                     logGroupName = "assignment-02",
-                    logStreamName = "try",
+                    logStreamName = "api",
                     logEvents = [
                         {
                         'timestamp' : int(time.time() * 1e3),
-                        'message' : "Displaying download link for already existing file "+ file_name + " with selections " + all_selections_string
+                        'message' : "200: Displaying download link for already existing file "+ file_name + " with selections " + all_selections_string
                         }
                     ]
                 )
@@ -354,7 +387,7 @@ def copy_nexrad_file_to_user_bucket(file_name : str, year : str, month : str, da
         destination_bucket.copy(copy_source, destination_key)   #copy file to destination bucket
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                 'timestamp' : int(time.time() * 1e3),
@@ -364,11 +397,11 @@ def copy_nexrad_file_to_user_bucket(file_name : str, year : str, month : str, da
         )
         clientLogs.put_log_events(      #logging to AWS CloudWatch logs
             logGroupName = "assignment-02",
-            logStreamName = "try",
+            logStreamName = "api",
             logEvents = [
                 {
                 'timestamp' : int(time.time() * 1e3),
-                'message' : "Displaying download link for copied file "+ file_name + " with selections " + all_selections_string
+                'message' : "200: Displaying download link for copied file "+ file_name + " with selections " + all_selections_string
                 }
             ]
         )
@@ -376,5 +409,15 @@ def copy_nexrad_file_to_user_bucket(file_name : str, year : str, month : str, da
         return url_to_mys3
 
     except:
+        clientLogs.put_log_events(      #logging to AWS CloudWatch logs
+            logGroupName = "assignment-02",
+            logStreamName = "api",
+            logEvents = [
+                {
+                'timestamp' : int(time.time() * 1e3),
+                'message' : "404: Unable to copy file"
+                }
+            ]
+        )
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail= "Unable to copy file")
