@@ -15,8 +15,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 #load env variables
-dotenv_path = Path('./dags/.env')
-load_dotenv(dotenv_path=dotenv_path)
+# dotenv_path = Path('./dags/.env')
+# load_dotenv(dotenv_path=dotenv_path)
 
 #authenticate S3 client with your user credentials that are stored in your .env config file
 s3client = boto3.client('s3',
@@ -33,7 +33,7 @@ clientLogs = boto3.client('logs',
                         )
 
 dag = DAG(
-    dag_id="metadata_scrape_v1",
+    dag_id="metadata_scrape_v3",
     schedule="0 0 * * *",   #run daily - at midnight
     start_date=days_ago(0),
     catchup=False,
